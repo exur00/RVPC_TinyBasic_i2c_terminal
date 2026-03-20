@@ -22,8 +22,9 @@
 #include <ch32v00x.h>
 
 #include "misc.h"
-#include "vga.h"
 #include "keyboard.h"
+#include "print.h"
+#include "i2c_own.h"
 #include "print.h"
 
 void basic(void);
@@ -31,20 +32,18 @@ void basic(void);
 int main(void) {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 	SystemCoreClockUpdate();
+	Delay_Init(); // TODO: is this necessary?
 	
 	// Disable GPIO Alternate Functions and external oscilator
 	// Othewize GPIO PORT A does not work
 	RCC_HSEConfig(RCC_HSE_OFF);
 	GPIO_PinRemapConfig(GPIO_Remap_PA1_2, DISABLE);
 
-	// Remapping
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-
-	vga_init();
+	own_I2C_Init();
 	kbd_init();
 
 	while (1) {
-		vga_cls();
+		cls();
         basic();
 	}
 }

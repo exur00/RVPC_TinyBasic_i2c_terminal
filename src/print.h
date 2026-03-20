@@ -28,5 +28,6 @@ void print(const char *str);
 void println(const char *str);
 void printfstr(const char* format, ...) __attribute__((__format__ (__printf__, 1, 2)));
 void printfln(const char* format, ...) __attribute__((__format__ (__printf__, 1, 2)));
+void cls();
 
 #endif // __PRINT_H

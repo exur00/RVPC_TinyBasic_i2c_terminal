@@ -23,48 +23,33 @@
 #include <stdarg.h>
 
 #include "print.h"
-#include "vga.h"
+#include "i2c_own.h"
+
+#define I2C_ADDR 0x37 // should be imported from gpu/terminal settings
+#define VGA_NUM_COLS 80 // should be imported from gpu/terminal settings
+
+uint8_t send_buffer[10];
 
 void cursor_down() {
-	uint8_t row = vga_cursor_row();
-	if (row < VGA_NUM_ROWS - 1) {
-		row++;
-	} else {
-		vga_scroll_up();
-	}
-	vga_cursor_set(row, 0);
+	print("\n");
 }
 
 void cursor_back() {
-	uint8_t row = vga_cursor_row();
-	uint8_t col = vga_cursor_col();
-	if (col <= VGA_NUM_COLS - 1) {
-		col--;
-	}
-	vga_cursor_set(row, col);
+	send_buffer[0] = 0x1;
+	send_buffer[1] = 0x2; // get from header instead
+	I2C_SendBytes(I2C_ADDR, send_buffer, 2);
 }
 
 void write(char c) {
-	uint8_t col = vga_cursor_col();
-	uint8_t row = vga_cursor_row();
-	vga_write_at(row, col, c);
-	if (col < VGA_NUM_COLS - 1) {
-		vga_cursor_set(row, col+1);
-	}
+	I2C_SendByte(I2C_ADDR, c);
 }
 
 void print(const char *str) {
-	uint8_t col = vga_cursor_col();
-	uint8_t row = vga_cursor_row();
-	uint8_t len = strlen(str);
-	
-	vga_print_at(row, col, str);
-	
-	col += len;
-	if (col >= VGA_NUM_COLS) {
-		col = VGA_NUM_COLS - 1;
+	size_t i = 0;
+	while (1) {
+		if (str[i] == 0) {return;}
+		write(str[i++]);
 	}
-	vga_cursor_set(row, col);
 }
 
 void println(const char *str) {
@@ -92,4 +77,10 @@ void printfln(const char* format, ...) {
 	va_end(argptr);
 
 	println(tmp);
+}
+
+void cls() {
+	send_buffer[0] = 0x1; // replace with control command macro
+	send_buffer[1] = 0x0; // replace with CLS macro
+	I2C_SendBytes(I2C_ADDR, send_buffer, 2);
 }

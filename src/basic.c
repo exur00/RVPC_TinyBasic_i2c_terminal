@@ -11,7 +11,7 @@
 #include <math.h>
 #include "keyboard.h"
 #include "print.h"
-#include "vga.h"
+#define VGA_NUM_COLS 80 // should be imported from terminal definition
 //#include "debug.h"
 
 // TOYOSHIKI TinyBASIC symbols
@@ -211,9 +211,6 @@ void c_gets() {
       cursor_back(); c_putch(' '); cursor_back(); //文字を消す
 //      c_putch(8); c_putch(' '); c_putch(8); //文字を消す
     } else {
-      if( len>0 && ((len % (VGA_NUM_COLS-1))==0) && c!=0 )
-        cursor_down();
-
     //表示可能な文字が入力された場合の処理（バッファのサイズを超えないこと）
       if (c_isprint(c) && (len < (SIZE_LINE - 1) )) {
         lbuf[len++] = c; //バッファへ入れて文字数を1増やす
@@ -1192,7 +1189,7 @@ unsigned char* iexe() {
       break; //打ち切る
     case I_CLS: //added by augc.it
       cip++; //中間コードポインタを次へ進める
-      vga_cls();
+      cls();
       break;
     case I_NEW: //中間コードがNEWの場合
     case I_LIST: //中間コードがLISTの場合
@@ -1346,7 +1343,7 @@ void icom() {
 
   case I_CLS: //clear the screen added by augc.it
     cip++;
-    vga_cls();
+    cls();
     break;
 
     // ADD for CH32V003
