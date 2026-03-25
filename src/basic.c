@@ -66,7 +66,8 @@ const char *kwtbl[] = {
   ">=", "#", ">", "=", "<=", "<",
   "@", "RND", "ABS", "SIZE",
   "LIST", "RUN", "NEW"
-  ,"SAVE" ,"LOAD","CLS"                // ADD
+  ,"SAVE" ,"LOAD","CLS",               // ADD
+  "SETCOL"                             // custom commands
 };
 
 // Keyword count
@@ -84,6 +85,7 @@ enum {
   I_ARRAY, I_RND, I_ABS, I_SIZE,
   I_LIST, I_RUN, I_NEW,
   I_SAVE,I_LOAD, I_CLS,                // ADD
+  I_SETCOL,                            // custom commands
   I_NUM, I_VAR, I_STR,
   I_EOL
 
@@ -143,7 +145,8 @@ const char* errmsg[] = {
   "Illegal command",
   "Syntax error",
   "Internal error",
-  "Abort by [ESC]"
+  "Abort by [ESC]",
+  "Color must fit in byte"
 };
 
 // Error code assignment
@@ -162,7 +165,8 @@ enum {
   ERR_COM,
   ERR_SYNTAX,
   ERR_SYS,
-  ERR_ESC
+  ERR_ESC,
+  ERR_COL
 };
 
 // RAM mapping
@@ -995,6 +999,18 @@ void ilet() {
   }
 }
 
+// Set Color handler
+void isetcol() {
+  uint8_t value = iexp();
+  if (err)
+    return;
+  if (value > 255) {
+    err = ERR_COL;
+    return;
+  }
+  set_color(value);
+}
+
 // Execute a series of i-code
 unsigned char* iexe() {
   short lineno; //行番号
@@ -1192,6 +1208,10 @@ unsigned char* iexe() {
       cip++; //中間コードポインタを次へ進める
       cls();
       break;
+    case I_SETCOL:
+      cip++;
+      isetcol();
+      break;
     case I_NEW: //中間コードがNEWの場合
     case I_LIST: //中間コードがLISTの場合
     case I_RUN: //中間コードがRUNの場合
@@ -1366,6 +1386,11 @@ void icom() {
       err = ERR_SYNTAX; //エラー番号をセット
     break; //打ち切る
     // ADD for CH32V003
+
+  case I_SETCOL:
+    cip++;
+    isetcol();
+    break;  
 
   default: //どれにも該当しない場合
     iexe(); //中間コードを実行
