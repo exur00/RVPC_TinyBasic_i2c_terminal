@@ -12,6 +12,7 @@
 #include "keyboard.h"
 #include "print.h"
 #include "settings.h"
+#include "i2c_own.h"
 #define VGA_NUM_COLS 80 // should be imported from terminal definition
 //#include "debug.h"
 
@@ -67,7 +68,7 @@ const char *kwtbl[] = {
   "@", "RND", "ABS", "SIZE",
   "LIST", "RUN", "NEW"
   ,"SAVE" ,"LOAD","CLS",               // ADD
-  "SETCOL"                             // custom commands
+  "SETCOL", "IIC"                      // custom commands
 };
 
 // Keyword count
@@ -85,7 +86,7 @@ enum {
   I_ARRAY, I_RND, I_ABS, I_SIZE,
   I_LIST, I_RUN, I_NEW,
   I_SAVE,I_LOAD, I_CLS,                // ADD
-  I_SETCOL,                            // custom commands
+  I_SETCOL, I_I2C,                     // custom commands
   I_NUM, I_VAR, I_STR,
   I_EOL
 
@@ -166,7 +167,7 @@ enum {
   ERR_SYNTAX,
   ERR_SYS,
   ERR_ESC,
-  ERR_COL
+  ERR_COL, ERR_I2C_ADDR,
 };
 
 // RAM mapping
@@ -1001,14 +1002,38 @@ void ilet() {
 
 // Set Color handler
 void isetcol() {
-  uint8_t value = iexp();
+  short value = iexp();
   if (err)
     return;
   if (value > 255) {
     err = ERR_COL;
     return;
   }
-  set_color(value);
+  set_color((uint8_t) value);
+}
+
+// Write i2c handler
+void ii2c() {
+  short value = iexp();
+
+  if (*cip != I_TO) {
+    err = ERR_VWOEQ;
+    return;
+  }
+  cip++;
+
+  short addr = iexp();
+  if (err)
+    return;
+  if (value > 255) {
+    err = ERR_COL; // TODO: placeholder error
+    return;
+  }
+  if (addr > 127) {
+    err = ERR_I2C_ADDR; // TODO: placeholder error
+    return;
+  }
+  I2C_SendByte((uint8_t) addr, (uint8_t) value);
 }
 
 // Execute a series of i-code
@@ -1212,6 +1237,10 @@ unsigned char* iexe() {
       cip++;
       isetcol();
       break;
+    case I_I2C:
+      cip++;
+      ii2c();
+      break;
     case I_NEW: //中間コードがNEWの場合
     case I_LIST: //中間コードがLISTの場合
     case I_RUN: //中間コードがRUNの場合
@@ -1390,7 +1419,11 @@ void icom() {
   case I_SETCOL:
     cip++;
     isetcol();
-    break;  
+    break;
+  case I_I2C:
+    cip++;
+    ii2c();
+    break;
 
   default: //どれにも該当しない場合
     iexe(); //中間コードを実行
