@@ -29,5 +29,6 @@ void println(const char *str);
 void printfstr(const char* format, ...) __attribute__((__format__ (__printf__, 1, 2)));
 void printfln(const char* format, ...) __attribute__((__format__ (__printf__, 1, 2)));
 void cls();
+void set_color(uint8_t color);
 
 #endif // __PRINT_H

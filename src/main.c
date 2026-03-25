@@ -26,6 +26,7 @@
 #include "print.h"
 #include "i2c_own.h"
 #include "print.h"
+#include "settings.h"
 
 void basic(void);
 
@@ -44,6 +45,7 @@ int main(void) {
 
 	while (1) {
 		cls();
+		set_color(default_color);
         basic();
 	}
 }

@@ -84,3 +84,9 @@ void cls() {
 	send_buffer[1] = 0x0; // replace with CLS macro
 	I2C_SendBytes(I2C_ADDR, send_buffer, 2);
 }
+
+void set_color(uint8_t color) {
+	send_buffer[0] = 0x2;
+	send_buffer[1] = color;
+	I2C_SendBytes(I2C_ADDR, send_buffer, 2);
+}
