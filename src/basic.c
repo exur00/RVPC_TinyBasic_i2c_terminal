@@ -11,6 +11,7 @@
 #include <math.h>
 #include "keyboard.h"
 #include "print.h"
+#include "settings.h"
 #define VGA_NUM_COLS 80 // should be imported from terminal definition
 //#include "debug.h"
 
@@ -1375,6 +1376,7 @@ void icom() {
 // Print OK or error message
 void error() {
   if (err) { //もし「OK」ではなかったら
+    set_color(error_color);
 
     //もしプログラムの実行中なら（cipがリストの中にあり、clpが末尾ではない場合）
     if (cip >= listbuf && cip < listbuf + SIZE_LIST && *clp)
@@ -1395,6 +1397,8 @@ void error() {
 
   newline(); //改行
   c_puts(errmsg[err]); //「OK」またはエラーメッセージを表示
+  if (err)
+    set_color(default_color);
   newline(); //改行
   err = 0; //エラー番号をクリア
 }
