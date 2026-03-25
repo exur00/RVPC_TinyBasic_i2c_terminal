@@ -77,3 +77,34 @@ void I2C_SendBytes(uint8_t address, uint8_t *data, size_t length)
 
     I2C_GenerateSTOP(I2C1, ENABLE);
 }
+
+void I2C_SendCommandAndBytes(uint8_t address, uint8_t command, uint8_t *data, size_t length)
+{
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY) != RESET);
+
+    I2C_GenerateSTART(I2C1, ENABLE);
+
+    while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT));
+
+    I2C_Send7bitAddress(I2C1, address << 1, I2C_Direction_Transmitter);
+
+    while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+
+    // send command byte
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_TXE) == RESET);
+
+    I2C_SendData(I2C1, command);
+    
+    // send data
+    for (size_t i = 0; i < length; i++) {
+
+        while (I2C_GetFlagStatus(I2C1, I2C_FLAG_TXE) == RESET);
+
+        I2C_SendData(I2C1, data[i]);
+
+    }
+
+    while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+
+    I2C_GenerateSTOP(I2C1, ENABLE);
+}

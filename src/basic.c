@@ -196,7 +196,7 @@ char c_isalpha(char c) {
 }
 
 void c_puts(const char *s) {
-  while (*s) c_putch(*s++); //終端でなければ出力して繰り返す
+  print(s);
 }
 
 void c_gets() {

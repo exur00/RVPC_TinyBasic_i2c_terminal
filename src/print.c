@@ -45,11 +45,7 @@ void write(char c) {
 }
 
 void print(const char *str) {
-	size_t i = 0;
-	while (1) {
-		if (str[i] == 0) {return;}
-		write(str[i++]);
-	}
+	I2C_SendCommandAndBytes(I2C_ADDR, 0x0, str, strlen(str));
 }
 
 void println(const char *str) {
